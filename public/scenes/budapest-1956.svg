@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
+  <defs>
+    <radialGradient id="vignette-budapest-1956" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#141c17" stop-opacity="1"/>
+      <stop offset="45%" stop-color="#0d1410" stop-opacity="1"/>
+      <stop offset="85%" stop-color="#080c09" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#040605" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="radar-glow-budapest-1956" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12"/>
+      <stop offset="50%" stop-color="#10b981" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid-budapest-1956" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+      <circle cx="0" cy="0" r="1.5" fill="rgba(255,255,255,0.25)"/>
+    </pattern>
+    <pattern id="dots-budapest-1956" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="rgba(255,255,255,0.12)"/>
+    </pattern>
+  </defs>
+
+  <!-- Background Base Gradients -->
+  <rect width="100%" height="100%" fill="url(#vignette-budapest-1956)"/>
+  <rect width="100%" height="100%" fill="url(#grid-budapest-1956)"/>
+  <rect width="100%" height="100%" fill="url(#dots-budapest-1956)" opacity="0.7"/>
+
+  <!-- Central Tactical Radar Glow -->
+  <circle cx="960" cy="540" r="500" fill="url(#radar-glow-budapest-1956)"/>
+
+  <!-- Archival War Blueprint Outer Border Frame -->
+  <rect x="50" y="50" width="1820" height="980" fill="none" stroke="rgba(245,158,11,0.45)" stroke-width="2.5"/>
+  <rect x="62" y="62" width="1796" height="956" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="10 6"/>
+
+  <!-- Prominent Central Military Radar & War Diagram Reticles -->
+  <g stroke="rgba(255,255,255,0.38)" fill="none" stroke-width="2">
+    <circle cx="960" cy="540" r="440" stroke-dasharray="14 8"/>
+    <circle cx="960" cy="540" r="330"/>
+    <circle cx="960" cy="540" r="220" stroke-dasharray="8 6"/>
+    <circle cx="960" cy="540" r="110"/>
+    <circle cx="960" cy="540" r="24" fill="rgba(245,158,11,0.5)"/>
+    
+    <!-- Crosshairs & Angle Radials -->
+    <line x1="960" y1="60" x2="960" y2="1020" stroke="rgba(245,158,11,0.5)" stroke-width="2.5"/>
+    <line x1="440" y1="540" x2="1480" y2="540" stroke="rgba(245,158,11,0.5)" stroke-width="2.5"/>
+    <line x1="620" y1="200" x2="1300" y2="880" stroke="rgba(255,255,255,0.25)" stroke-dasharray="6 6"/>
+    <line x1="620" y1="880" x2="1300" y2="200" stroke="rgba(255,255,255,0.25)" stroke-dasharray="6 6"/>
+  </g>
+
+  <!-- Large Military Salient / Strategic Advance Vectors -->
+  <g fill="none" stroke="rgba(245,158,11,0.55)" stroke-width="3.5">
+    <path d="M 280 820 Q 620 660 960 540 T 1640 260" stroke-dasharray="12 8"/>
+    <polygon points="1655,250 1620,265 1635,285" fill="rgba(245,158,11,0.7)"/>
+    <path d="M 280 260 Q 620 400 960 540 T 1640 820" stroke="rgba(239,68,68,0.5)" stroke-dasharray="10 6"/>
+    <polygon points="1655,830 1635,805 1620,825" fill="rgba(239,68,68,0.7)"/>
+  </g>
+
+  <!-- Tactical Range Rings & Azimuth Markings -->
+  <g fill="rgba(255,255,255,0.55)" font-family="monospace" font-size="14" font-weight="bold">
+    <text x="975" y="220">000° NORTH [AZIMUTH 360]</text>
+    <text x="1310" y="535">090° EAST</text>
+    <text x="975" y="890">180° SOUTH</text>
+    <text x="570" y="535">270° WEST</text>
+    <text x="1110" y="390">RANGE 50 KM</text>
+    <text x="1190" y="310">RANGE 100 KM</text>
+    <text x="1270" y="230">RANGE 150 KM</text>
+  </g>
+
+  <!-- War Documentation Header Stencil -->
+  <g font-family="monospace" text-anchor="start">
+    <rect x="90" y="90" width="680" height="155" fill="rgba(8,12,10,0.85)" stroke="rgba(245,158,11,0.6)" stroke-width="2"/>
+    <text x="115" y="128" font-size="16" font-weight="bold" fill="rgba(239,68,68,0.95)" letter-spacing="4">
+      [TOP SECRET // EYES ONLY // BLETCHLEY HUT 99]
+    </text>
+    <text x="115" y="170" font-size="28" font-weight="900" fill="rgba(245,158,11,0.98)" letter-spacing="4">
+      DANUBE CROSSINGS & SUEZ CRISIS
+    </text>
+    <text x="115" y="208" font-size="13" font-weight="bold" fill="rgba(255,255,255,0.85)" letter-spacing="2">
+      THEATRE: ROUND 10 // ERA: 1956 // HUNGARIAN MECHANIZED DEPLOYMENT & CANAL THEATRE
+    </text>
+  </g>
+
+  <!-- Bottom Coordinates & Sector Grid Box -->
+  <g font-family="monospace">
+    <rect x="90" y="890" width="760" height="95" fill="rgba(8,12,10,0.85)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+    <text x="115" y="925" font-size="14" font-weight="bold" fill="rgba(255,255,255,0.9)" letter-spacing="2">
+      COORDINATES: 52°31'12"N 13°24'18"E // SECTOR GRID 404-JANUS
+    </text>
+    <text x="115" y="955" font-size="12" fill="rgba(245,158,11,0.9)" letter-spacing="2">
+      TELETYPE FREQ: 8.420 MHZ // ENCRYPTION: ROTOR STAGE VERIFIED // STATUS: INTERCEPTED
+    </text>
+  </g>
+
+  <!-- Right Side Tactical Gauge Box -->
+  <g font-family="monospace" text-anchor="end">
+    <rect x="1400" y="90" width="430" height="190" fill="rgba(8,12,10,0.85)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+    <text x="1805" y="128" font-size="14" font-weight="bold" fill="rgba(245,158,11,0.95)" letter-spacing="3">
+      DEFCON STATUS: READY
+    </text>
+    <text x="1805" y="160" font-size="12" fill="rgba(255,255,255,0.85)" letter-spacing="2">
+      SYSTEM: CRYPTANALYSIS RADAR
+    </text>
+    <text x="1805" y="192" font-size="12" fill="rgba(255,255,255,0.75)" letter-spacing="2">
+      STATION: BLETCHLEY DISPATCH
+    </text>
+    <text x="1805" y="240" font-size="20" font-weight="900" fill="rgba(239,68,68,0.95)" letter-spacing="4">
+      [OPERATION JANUS]
+    </text>
+  </g>
+</svg>
