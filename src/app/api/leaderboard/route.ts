@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const leaderboard = db.getLeaderboard();
-    const isPaused = db.isEventPaused();
+    const leaderboard = await db.getLeaderboard();
+    const isPaused = await db.isEventPaused();
     return NextResponse.json({
       leaderboard,
       isPaused,

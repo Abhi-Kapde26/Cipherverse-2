@@ -48,14 +48,14 @@ export function getCurrentSession(): SessionData | null {
   return verifySession(token);
 }
 
-export function getAuthenticatedTeam(): { team: TeamRecord; progress: ProgressRecord } | null {
+export async function getAuthenticatedTeam(): Promise<{ team: TeamRecord; progress: ProgressRecord } | null> {
   const session = getCurrentSession();
   if (!session) return null;
 
-  const team = db.getTeamById(session.teamId);
+  const team = await db.getTeamById(session.teamId);
   if (!team) return null;
 
-  const progress = db.getProgress(team.id);
+  const progress = await db.getProgress(team.id);
   if (!progress) return null;
 
   return { team, progress };

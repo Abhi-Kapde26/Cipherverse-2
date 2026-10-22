@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // ensure native node modules like node:sqlite / node:crypto can be used in app route handlers
+  experimental: {
+    serverComponentsExternalPackages: ['node:sqlite'],
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -10,6 +12,8 @@ const nextConfig = {
         net: false,
         tls: false,
       };
+    } else {
+      config.externals = [...(config.externals || []), 'node:sqlite'];
     }
     return config;
   },

@@ -5,12 +5,12 @@ import { LEVELS } from '@/lib/ciphers';
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = getAuthenticatedTeam();
+    const auth = await getAuthenticatedTeam();
     if (!auth) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
-    if (db.isEventPaused()) {
+    if (await db.isEventPaused()) {
       return NextResponse.json({ error: 'Event paused.' }, { status: 423 });
     }
 
@@ -31,10 +31,10 @@ export async function POST(req: NextRequest) {
 
     // ACTION: 'start' -> Initialize or return existing countdown session
     if (action === 'start') {
-      let session = db.getDilemmaSession(team.id, levelNum);
+      let session = await db.getDilemmaSession(team.id, levelNum);
       const timerSecs = levelDef.timerSeconds || 180;
       if (!session) {
-        session = db.startDilemmaSession(team.id, levelNum, timerSecs);
+        session = await db.startDilemmaSession(team.id, levelNum, timerSecs);
       }
       return NextResponse.json({
         success: true,
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // ACTION: 'choose' -> Register player option
     if (action === 'choose') {
-      const session = db.getDilemmaSession(team.id, levelNum);
+      const session = await db.getDilemmaSession(team.id, levelNum);
       const now = Date.now();
       let autoPenalized = false;
       let finalOption = option;
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Record choice in DB
-      db.recordChoice(team.id, levelNum, finalOption, autoPenalized);
+      await db.recordChoice(team.id, levelNum, finalOption, autoPenalized);
 
       let burnDelta = autoPenalized ? 1 : 0;
       const updates: {
@@ -94,9 +94,9 @@ export async function POST(req: NextRequest) {
         updates.burn_level = progress.burn_level + burnDelta;
       }
 
-      db.updateProgress(team.id, updates);
+      await db.updateProgress(team.id, updates);
 
-      const refreshedProgress = db.getProgress(team.id);
+      const refreshedProgress = await db.getProgress(team.id);
 
       return NextResponse.json({
         success: true,

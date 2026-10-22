@@ -3,13 +3,13 @@ import { getAuthenticatedTeam } from '@/lib/session';
 import { db } from '@/lib/db';
 
 export async function GET() {
-  const auth = getAuthenticatedTeam();
+  const auth = await getAuthenticatedTeam();
   if (!auth) {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
 
-  const choices = db.getChoices(auth.team.id);
-  const isPaused = db.isEventPaused();
+  const choices = await db.getChoices(auth.team.id);
+  const isPaused = await db.isEventPaused();
 
   return NextResponse.json({
     authenticated: true,

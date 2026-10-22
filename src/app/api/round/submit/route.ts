@@ -11,12 +11,12 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = getAuthenticatedTeam();
+    const auth = await getAuthenticatedTeam();
     if (!auth) {
       return NextResponse.json({ error: 'Unauthorized: Session required.' }, { status: 401 });
     }
 
-    if (db.isEventPaused()) {
+    if (await db.isEventPaused()) {
       return NextResponse.json(
         { error: 'OPERATION FROZEN: High Command has temporarily halted cryptographic operations.' },
         { status: 423 }
@@ -40,11 +40,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Rate Limiting: 1 attempt per 3 seconds per team
-    const lastSubTime = db.getLastSubmissionTime(team.id);
-    const now = Date.now();
-    if (lastSubTime && now - lastSubTime < 3000) {
-      const waitRemaining = Math.ceil((3000 - (now - lastSubTime)) / 1000);
+    // Rate Limiting: 1 attempt per 3 seconds per team (persisted in DB)
+    const rateLimitRes = await db.checkRateLimit(`submit:${team.id}`, 3000);
+    if (!rateLimitRes.allowed) {
+      const waitRemaining = rateLimitRes.waitRemainingSeconds ?? 1;
       return NextResponse.json(
         { error: `Teletype buffer cooling down. Wait ${waitRemaining}s before next transmission.` },
         { status: 429 }
@@ -103,7 +102,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Record submission attempt
-    db.recordSubmission(team.id, levelNum, answer.slice(0, 100), isCorrect);
+    await db.recordSubmission(team.id, levelNum, answer.slice(0, 100), isCorrect);
 
     if (!isCorrect) {
       const newWrongCount = progress.wrong_attempts_current + 1;
@@ -114,7 +113,7 @@ export async function POST(req: NextRequest) {
         newBurnLevel += 1;
       }
 
-      db.updateProgress(team.id, {
+      await db.updateProgress(team.id, {
         wrong_attempts_current: newWrongCount,
         burn_level: newBurnLevel,
       });
@@ -129,6 +128,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Correct Answer Logic
+    const now = Date.now();
     const nextLevel = levelNum + 1;
     let newFragment: number | null = null;
     const updatedFragments = [...progress.key_fragments];
@@ -141,20 +141,34 @@ export async function POST(req: NextRequest) {
     const isComplete = levelNum === 15;
     const finishedAt = isComplete ? now : null;
 
-    db.updateProgress(team.id, {
-      current_level: nextLevel,
-      wrong_attempts_current: 0,
-      key_fragments: updatedFragments,
-      finished_at: finishedAt || progress.finished_at,
-    });
+    // Requirement 5: Atomically advance team level exactly once (conditional update or Postgres RPC)
+    const advanceResult = await db.advanceTeamLevel(
+      team.id,
+      levelNum,
+      nextLevel,
+      updatedFragments,
+      finishedAt
+    );
+
+    let finalNextLevel = isComplete ? 15 : nextLevel;
+    let finalKeyFragments = updatedFragments;
+
+    // If parallel request already advanced, fetch latest state
+    if (!advanceResult.advanced) {
+      const refreshed = await db.getProgress(team.id);
+      if (refreshed) {
+        finalNextLevel = isComplete ? 15 : refreshed.current_level;
+        finalKeyFragments = refreshed.key_fragments;
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: isComplete ? 'OPERATION COMPLETE: Final cipher decrypted.' : 'DECRYPTED: Clearance Granted.',
       clearedLevel: levelNum,
-      nextLevel: isComplete ? 15 : nextLevel,
+      nextLevel: finalNextLevel,
       isComplete,
-      keyFragments: updatedFragments,
+      keyFragments: finalKeyFragments,
       newFragment,
     });
   } catch (err: unknown) {

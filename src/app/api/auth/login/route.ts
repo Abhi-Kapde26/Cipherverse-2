@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Team name and password required.' }, { status: 400 });
     }
 
-    const team = db.getTeamByName(teamName.trim());
+    const team = await db.getTeamByName(teamName.trim());
     if (!team) {
       return NextResponse.json({ error: 'Team credentials not found in Hut 99 index.' }, { status: 401 });
     }
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid authentication pass-phrase.' }, { status: 401 });
     }
 
-    const progress = db.getProgress(team.id);
+    const progress = await db.getProgress(team.id);
 
     setSessionCookie({
       teamId: team.id,

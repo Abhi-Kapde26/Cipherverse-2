@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanTeamName = teamName.trim();
-    const existing = db.getTeamByName(cleanTeamName);
+    const existing = await db.getTeamByName(cleanTeamName);
     if (existing) {
       return NextResponse.json({ error: 'Team name already registered with Hut 99.' }, { status: 409 });
     }
@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
     const teamId = 'u404-' + crypto.randomUUID().slice(0, 8);
     const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
-    const newTeam = db.createTeam(teamId, cleanTeamName, cleanMembers, passwordHash);
-    const progress = db.getProgress(teamId);
+    const newTeam = await db.createTeam(teamId, cleanTeamName, cleanMembers, passwordHash);
+    const progress = await db.getProgress(teamId);
 
     setSessionCookie({
       teamId: newTeam.id,
