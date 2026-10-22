@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ShieldAlert, 
@@ -16,9 +16,10 @@ import {
   Search,
   CheckCircle2,
   XCircle,
-  Eye
+  Eye,
+  LogOut
 } from 'lucide-react';
-import { LEVELS, LEVEL_VARIANTS } from '@/lib/ciphers';
+import { LEVELS } from '@/lib/ciphers';
 
 interface AdminTeam {
   id: string;
@@ -55,7 +56,7 @@ interface ServerAnswerItem {
 }
 
 export default function AdminPage() {
-  const [adminPassword, setAdminPassword] = useState('janus-admin-hq-1943');
+  const [adminKey, setAdminKey] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -68,6 +69,26 @@ export default function AdminPage() {
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [showAnswerKeys, setShowAnswerKeys] = useState(false);
 
+  // Check if an admin session cookie is already active
+  useEffect(() => {
+    const checkActiveSession = async () => {
+      try {
+        const res = await fetch('/api/admin', { method: 'GET' });
+        if (res.ok) {
+          const data = await res.json();
+          setAuthenticated(true);
+          setTeams(data.teams || []);
+          setSubmissions(data.submissions || []);
+          setAnswers(data.answers || []);
+          setIsPaused(Boolean(data.isPaused));
+        }
+      } catch {
+        // Not authenticated, stay on login view
+      }
+    };
+    checkActiveSession();
+  }, []);
+
   const loginAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -78,8 +99,8 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPassword,
-          action: 'get_overview',
+          action: 'login',
+          key: adminKey,
         }),
       });
 
@@ -88,6 +109,7 @@ export default function AdminPage() {
         setAuthError(data.error || 'Authentication denied.');
       } else {
         setAuthenticated(true);
+        setAdminKey(''); // Wipe input state from memory immediately
         setTeams(data.teams || []);
         setSubmissions(data.submissions || []);
         setAnswers(data.answers || []);
@@ -100,6 +122,24 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logout' }),
+      });
+    } catch {
+      // ignore
+    } finally {
+      setAuthenticated(false);
+      setTeams([]);
+      setSubmissions([]);
+      setAnswers([]);
+      setAdminKey('');
+    }
+  };
+
   const refreshOverview = async () => {
     setLoading(true);
     try {
@@ -107,7 +147,6 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPassword,
           action: 'get_overview',
         }),
       });
@@ -117,6 +156,8 @@ export default function AdminPage() {
         setSubmissions(data.submissions || []);
         setAnswers(data.answers || []);
         setIsPaused(Boolean(data.isPaused));
+      } else if (res.status === 401) {
+        setAuthenticated(false);
       }
     } catch (e) {
       console.error(e);
@@ -131,7 +172,6 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPassword,
           action: 'toggle_pause',
           paused: !isPaused,
         }),
@@ -140,6 +180,8 @@ export default function AdminPage() {
       if (data.success) {
         setIsPaused(data.isPaused);
         setActionNotice(`Event state updated: ${data.isPaused ? 'PAUSED' : 'ACTIVE'}`);
+      } else if (res.status === 401) {
+        setAuthenticated(false);
       }
     } catch (e) {
       console.error(e);
@@ -153,7 +195,6 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPassword,
           action: 'reset_team',
           teamId,
         }),
@@ -162,6 +203,8 @@ export default function AdminPage() {
       if (data.success) {
         setActionNotice(data.message);
         refreshOverview();
+      } else if (res.status === 401) {
+        setAuthenticated(false);
       }
     } catch (e) {
       console.error(e);
@@ -174,7 +217,6 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPassword,
           action: 'update_team_level',
           teamId,
           level,
@@ -184,6 +226,8 @@ export default function AdminPage() {
       if (data.success) {
         setActionNotice(data.message);
         refreshOverview();
+      } else if (res.status === 401) {
+        setAuthenticated(false);
       }
     } catch (e) {
       console.error(e);
@@ -196,7 +240,6 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPassword,
           action: 'update_burn_level',
           teamId,
           burnLevel,
@@ -206,6 +249,8 @@ export default function AdminPage() {
       if (data.success) {
         setActionNotice(data.message);
         refreshOverview();
+      } else if (res.status === 401) {
+        setAuthenticated(false);
       }
     } catch (e) {
       console.error(e);
@@ -218,7 +263,6 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPassword,
           action: 'force_branch',
           teamId,
           branch,
@@ -228,6 +272,8 @@ export default function AdminPage() {
       if (data.success) {
         setActionNotice(data.message);
         refreshOverview();
+      } else if (res.status === 401) {
+        setAuthenticated(false);
       }
     } catch (e) {
       console.error(e);
@@ -261,8 +307,10 @@ export default function AdminPage() {
               <input
                 type="password"
                 required
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
+                value={adminKey}
+                onChange={(e) => setAdminKey(e.target.value)}
+                placeholder=""
+                autoComplete="current-password"
                 className="w-full bg-bunker-950 border border-bunker-700 rounded px-3 py-2 text-stone-100 text-sm focus:outline-none focus:border-red-500"
               />
             </div>
@@ -328,6 +376,14 @@ export default function AdminPage() {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Sync</span>
           </button>
+
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1.5 rounded bg-bunker-900 border border-bunker-700 hover:border-red-500/60 text-xs text-stone-400 hover:text-red-400 flex items-center gap-1.5 transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Lock</span>
+          </button>
         </div>
       </header>
 
@@ -368,24 +424,25 @@ export default function AdminPage() {
           </div>
 
           <div className="p-4 rounded-lg bg-bunker-900 border border-bunker-700">
-            <div className="text-xs text-stone-500 uppercase">Total Levels</div>
+            <div className="text-xs text-stone-500 uppercase">Active Rounds</div>
             <div className="text-2xl font-black text-stone-100 mt-1">{LEVELS.length}</div>
           </div>
 
           <div className="p-4 rounded-lg bg-bunker-900 border border-bunker-700">
-            <div className="text-xs text-stone-500 uppercase">Global Status</div>
+            <div className="text-xs text-stone-500 uppercase">Network Status</div>
             <div className={`text-2xl font-black mt-1 ${isPaused ? 'text-red-500' : 'text-emerald-400'}`}>
-              {isPaused ? 'FROZEN' : 'ACTIVE'}
+              {isPaused ? 'SUSPENDED' : 'OPERATIONAL'}
             </div>
           </div>
         </div>
 
-        {/* Teams Management */}
+        {/* Unit Management Table */}
         <div className="bg-bunker-900 border border-bunker-700 rounded-lg p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-black text-stone-100 uppercase tracking-wider">
-                CRYPTANALYSIS STATIONS ROSTER
+              <h2 className="text-lg font-black text-stone-100 uppercase tracking-wider flex items-center gap-2">
+                <Users className="w-5 h-5 text-red-500" />
+                <span>FIELD OPERATIVES ROSTER ({filteredTeams.length})</span>
               </h2>
               <p className="text-xs text-stone-400">
                 Override rounds, adjust suspicion burn levels, force superpower allegiances, or reset units.
@@ -393,109 +450,123 @@ export default function AdminPage() {
             </div>
 
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-500" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
               <input
                 type="text"
-                placeholder="Filter teams..."
+                placeholder="Filter by Unit or ID..."
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className="bg-bunker-950 border border-bunker-700 rounded pl-8 pr-3 py-1.5 text-xs text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-500"
+                className="bg-bunker-950 border border-bunker-700 rounded pl-9 pr-3 py-1.5 text-xs text-stone-200 placeholder-stone-500 focus:outline-none focus:border-red-500"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="bg-bunker-950 border-b border-bunker-800 text-stone-400 uppercase text-[10px] tracking-wider">
-                  <th className="py-2.5 px-3">Team Name / ID</th>
-                  <th className="py-2.5 px-3">Members</th>
-                  <th className="py-2.5 px-3 text-center">Current Round</th>
-                  <th className="py-2.5 px-3 text-center">Burn Meter</th>
-                  <th className="py-2.5 px-3 text-center">Branch</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
+                <tr className="bg-bunker-950 border-b border-bunker-800 text-stone-400 uppercase text-[10px]">
+                  <th className="py-2.5 px-3">Callsign / ID</th>
+                  <th className="py-2.5 px-3">Cryptanalysts</th>
+                  <th className="py-2.5 px-3">Round</th>
+                  <th className="py-2.5 px-3">Suspicion Burn</th>
+                  <th className="py-2.5 px-3">Allegiance</th>
+                  <th className="py-2.5 px-3 text-right">Emergency Overrides</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-bunker-800">
-                {filteredTeams.map((t) => (
-                  <tr key={t.id} className="hover:bg-bunker-850">
-                    <td className="py-3 px-3">
-                      <div className="font-bold text-stone-100">{t.team_name}</div>
-                      <div className="text-[10px] text-stone-500">{t.id}</div>
-                    </td>
-
-                    <td className="py-3 px-3 text-stone-400 max-w-xs truncate">
-                      {t.members.join(', ')}
-                    </td>
-
-                    <td className="py-3 px-3 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <select
-                          value={t.progress.current_level}
-                          onChange={(e) => handleUpdateLevel(t.id, Number(e.target.value))}
-                          className="bg-bunker-950 border border-bunker-700 rounded px-2 py-1 text-xs text-amber-400 font-bold"
+              <tbody className="divide-y divide-bunker-800 font-mono">
+                {filteredTeams.map((team) => {
+                  const p = team.progress;
+                  return (
+                    <tr key={team.id} className="hover:bg-bunker-850">
+                      <td className="py-3 px-3">
+                        <div className="font-bold text-stone-100">{team.team_name}</div>
+                        <div className="text-[10px] text-stone-500">{team.id}</div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="text-stone-300 truncate max-w-[200px]">
+                          {team.members.join(', ')}
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-amber-400">Rnd {p.current_level}</span>
+                          <select
+                            value={p.current_level}
+                            onChange={(e) => handleUpdateLevel(team.id, Number(e.target.value))}
+                            className="bg-bunker-950 border border-bunker-700 text-[10px] text-stone-300 rounded px-1.5 py-0.5 focus:outline-none"
+                          >
+                            {LEVELS.map((l) => (
+                              <option key={l.number} value={l.number}>
+                                Lv {l.number}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-bold ${p.burn_level >= 3 ? 'text-red-500' : 'text-stone-300'}`}>
+                            {p.burn_level}/4
+                          </span>
+                          <select
+                            value={p.burn_level}
+                            onChange={(e) => handleUpdateBurn(team.id, Number(e.target.value))}
+                            className="bg-bunker-950 border border-bunker-700 text-[10px] text-stone-300 rounded px-1.5 py-0.5 focus:outline-none"
+                          >
+                            {[0, 1, 2, 3, 4, 5].map((lvl) => (
+                              <option key={lvl} value={lvl}>
+                                BL {lvl}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-bold ${
+                            p.branch === 'A' ? 'text-blue-400' : p.branch === 'B' ? 'text-red-400' : 'text-stone-400'
+                          }`}>
+                            {p.branch}
+                          </span>
+                          <select
+                            value={p.branch}
+                            onChange={(e) => handleForceBranch(team.id, e.target.value)}
+                            className="bg-bunker-950 border border-bunker-700 text-[10px] text-stone-300 rounded px-1.5 py-0.5 focus:outline-none"
+                          >
+                            <option value="UNALIGNED">UNALIGNED</option>
+                            <option value="A">Branch A (CIA)</option>
+                            <option value="B">Branch B (KGB)</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <button
+                          onClick={() => handleResetTeam(team.id)}
+                          className="px-2.5 py-1 rounded bg-red-950/80 border border-red-700 hover:bg-red-900 text-red-300 text-[10px] font-bold uppercase transition-colors"
                         >
-                          {LEVELS.map((l) => (
-                            <option key={l.number} value={l.number}>
-                              Rnd {l.number}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-3 text-center">
-                      <select
-                        value={t.progress.burn_level}
-                        onChange={(e) => handleUpdateBurn(t.id, Number(e.target.value))}
-                        className={`bg-bunker-950 border border-bunker-700 rounded px-2 py-1 text-xs font-bold ${
-                          t.progress.burn_level >= 3 ? 'text-red-400' : 'text-stone-300'
-                        }`}
-                      >
-                        <option value={0}>0 (Intact)</option>
-                        <option value={1}>1 (Watched)</option>
-                        <option value={2}>2 (Hunted)</option>
-                        <option value={3}>3 (Burned)</option>
-                        <option value={4}>4 (Burned+)</option>
-                        <option value={5}>5 (Burned++)</option>
-                      </select>
-                    </td>
-
-                    <td className="py-3 px-3 text-center">
-                      <select
-                        value={t.progress.branch}
-                        onChange={(e) => handleForceBranch(t.id, e.target.value)}
-                        className="bg-bunker-950 border border-bunker-700 rounded px-2 py-1 text-xs font-bold text-stone-300"
-                      >
-                        <option value="UNALIGNED">Unaligned</option>
-                        <option value="A">CIA (Branch A)</option>
-                        <option value="B">KGB (Branch B)</option>
-                      </select>
-                    </td>
-
-                    <td className="py-3 px-3 text-right">
-                      <button
-                        onClick={() => handleResetTeam(t.id)}
-                        className="px-2.5 py-1 rounded bg-red-950/60 border border-red-800 text-red-400 hover:bg-red-900/80 text-[11px] font-bold transition-colors"
-                      >
-                        Reset Unit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                          Reset Unit
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Recent Submissions Wire Monitor */}
+        {/* Real-time Submissions Stream */}
         <div className="bg-bunker-900 border border-bunker-700 rounded-lg p-5 space-y-4">
-          <h2 className="text-lg font-black text-stone-100 uppercase tracking-wider">
-            RECENT TELETYPE SUBMISSIONS STREAM
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-black text-stone-100 uppercase tracking-wider flex items-center gap-2">
+              <Key className="w-5 h-5 text-amber-500" />
+              <span>LIVE TELETYPE TRANSMISSION STREAM</span>
+            </h2>
+            <span className="text-xs text-stone-400">Latest 50 intercepts</span>
+          </div>
 
-          <div className="overflow-x-auto max-h-72 overflow-y-auto">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
               <thead>
                 <tr className="bg-bunker-950 border-b border-bunker-800 text-stone-400 uppercase text-[10px]">
                   <th className="py-2 px-3">Time</th>
