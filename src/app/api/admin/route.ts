@@ -84,6 +84,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, isPaused: targetState });
     }
 
+    if (action === 'reset_all') {
+      await db.resetAllTournamentData();
+      return NextResponse.json({
+        success: true,
+        message: 'FACTORY RESET COMPLETE: All teams, progress, and submissions have been purged. Leaderboard has been reset.',
+      });
+    }
+
     if (action === 'reset_team') {
       if (!teamId) return NextResponse.json({ error: 'Team ID required.' }, { status: 400 });
       await db.resetTeam(teamId);

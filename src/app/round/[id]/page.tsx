@@ -394,7 +394,7 @@ export default function RoundPage() {
             </div>
 
             <div className="p-5 rounded-lg bg-black/90 border border-bunker-700 relative overflow-x-auto">
-              <pre className="font-mono text-base sm:text-lg font-bold text-emerald-400 tracking-wider whitespace-pre-wrap select-all">
+              <pre className="font-mono text-base sm:text-lg font-bold text-emerald-400 tracking-wider whitespace-pre-wrap break-words break-all select-all">
                 {activeCiphertext}
               </pre>
             </div>

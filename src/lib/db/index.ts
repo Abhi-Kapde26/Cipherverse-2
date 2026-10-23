@@ -1,6 +1,11 @@
 import { isSupabaseConfigured } from './config';
 import { supabaseDb } from './supabase';
 import { DatabaseAdapter } from './types';
+import { memoryRateLimiter } from '../rate-limiter';
+
+let cachedPaused: boolean | null = null;
+let lastPausedCheck = 0;
+const PAUSED_CACHE_TTL = 5000; // 5 seconds in-memory cache
 
 async function getAdapter(): Promise<DatabaseAdapter> {
   if (isSupabaseConfigured()) {
@@ -13,10 +18,19 @@ async function getAdapter(): Promise<DatabaseAdapter> {
 
 export const db: DatabaseAdapter = {
   async isEventPaused() {
+    const now = Date.now();
+    if (cachedPaused !== null && now - lastPausedCheck < PAUSED_CACHE_TTL) {
+      return cachedPaused;
+    }
     const adapter = await getAdapter();
-    return adapter.isEventPaused();
+    const paused = await adapter.isEventPaused();
+    cachedPaused = paused;
+    lastPausedCheck = now;
+    return paused;
   },
   async setEventPaused(paused: boolean) {
+    cachedPaused = paused;
+    lastPausedCheck = Date.now();
     const adapter = await getAdapter();
     return adapter.setEventPaused(paused);
   },
@@ -63,8 +77,8 @@ export const db: DatabaseAdapter = {
     return adapter.getLastSubmissionTime(teamId);
   },
   async checkRateLimit(key: string, minIntervalMs: number) {
-    const adapter = await getAdapter();
-    return adapter.checkRateLimit(key, minIntervalMs);
+    // Ultra-fast in-memory check to prevent database lock contention under 100+ concurrent teams
+    return memoryRateLimiter.check(key, minIntervalMs);
   },
   async getAllSubmissions(limit?: number) {
     const adapter = await getAdapter();
@@ -87,8 +101,14 @@ export const db: DatabaseAdapter = {
     return adapter.getChoices(teamId);
   },
   async resetTeam(teamId: string) {
+    memoryRateLimiter.reset(`submit:${teamId}`);
     const adapter = await getAdapter();
     return adapter.resetTeam(teamId);
+  },
+  async resetAllTournamentData() {
+    memoryRateLimiter.resetAll();
+    const adapter = await getAdapter();
+    return adapter.resetAllTournamentData();
   },
   async getLeaderboard() {
     const adapter = await getAdapter();

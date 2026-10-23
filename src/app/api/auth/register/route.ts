@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { db } from '@/lib/db';
 import { setSessionCookie } from '@/lib/session';
 
-const VALID_EVENT_PASSCODE = process.env.EVENT_PASSCODE || 'JANUS-1943';
+const VALID_EVENT_PASSCODE = process.env.EVENT_PASSCODE || 'NIRVANA_CIPHERVERSE_2026';
 
 export async function POST(req: NextRequest) {
   try {

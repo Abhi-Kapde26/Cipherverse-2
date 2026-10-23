@@ -1,7 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AtmosphereProvider } from "@/components/AtmosphereContext";
 import AtmosphereBackground from "@/components/AtmosphereBackground";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: "Operation Janus: The Trust Paradox | Hut 99",

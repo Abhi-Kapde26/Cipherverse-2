@@ -76,8 +76,26 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchSession();
-    const interval = setInterval(fetchSession, 12000);
-    return () => clearInterval(interval);
+
+    // High-concurrency optimization: poll every 20s and only when tab is active
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchSession();
+      }
+    }, 20000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSession();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   if (loading) {

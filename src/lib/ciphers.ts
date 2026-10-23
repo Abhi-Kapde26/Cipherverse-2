@@ -452,7 +452,7 @@ export const PAMPHLET_DOCS: Record<
         content:
           "Vigenère encryption shifts each plaintext character by the alphabetical index of the repeated keyword letter: C_i = (P_i + K_i) mod 26. To decipher: P_i = (C_i - K_i + 26) mod 26.",
         visual:
-          "Plain:   A L P I N E R E D O U B T\nKey:     R O C K E T R O C K E T R\nCipher:  R Z R S R X I S F Y Y U K",
+          "Key:  R O C K E T R O C K E T R\nCipher:  R Z R S R X I S F Y Y U K",
       },
     ],
   },
@@ -470,7 +470,7 @@ export const PAMPHLET_DOCS: Record<
       {
         heading: "Decryption Rules",
         content:
-          "1. Same Row: Shift left cyclically.\n2. Same Column: Shift up cyclically.\n3. Rectangle: Swap columns while keeping original rows.\nExample: FA -> AT, PO -> OM, CH -> IC, PL -> SH, BE -> AD, PV -> OW => ATOMIC SHADOW.",
+          "1. Same Row: Shift left cyclically.\n2. Same Column: Shift up cyclically.\n3. Rectangle: Swap columns while keeping original rows.",
       },
     ],
   },
@@ -483,7 +483,7 @@ export const PAMPHLET_DOCS: Record<
         content:
           "Uses coordinates A, D, F, G, V, X chosen specifically because Morse code transmissions of these six letters are acoustically distinct and difficult to garble over radio static.",
         visual:
-          "      A   D   F   G   V   X\nA |   A   I   R   L   F   T\nD |   1   B   C   D   E   G\nF |   H   K   M   N   O   P\nG |   Q   S   U   V   W   X\nV |   Y   Z   0   2   3   4\nX |   5   6   7   8   9   J",
+          "      A   D   F   G   V   X\nA |                        \nD |                        \nF |                        \nG |                        \nV |                        \nX |                        ",
       },
     ],
   },
@@ -511,11 +511,6 @@ export const PAMPHLET_DOCS: Record<
         visual:
           "      0  1  2  3  4  5  6  7  8  9\n      S  N     O        W  Y  -  -\n8 |   A  B  C  D  E  F  G  H  I  J\n9 |   K  L  M  P  Q  R  T  U  V  Z",
       },
-      {
-        heading: "Deconstruction Example",
-        content:
-          "80 -> B, 88 -> L, 2 -> A, 87 -> K, 0 -> E, 89 -> M, 3 -> O, 88 -> L, 0 -> E => BLAKE MOLE.",
-      },
     ],
   },
   baudot: {
@@ -527,7 +522,7 @@ export const PAMPHLET_DOCS: Record<
         content:
           "Compare bits: 0^0=0, 1^1=0, 0^1=1, 1^0=1. Then look up letter in ITA2 code table.",
         visual:
-          "Tape: 01111  10010  10101  01001  00001\nMask: 10101  10001  10011  10101  10101\nXOR:  11010  00011  00110  11100  10100\nITA2: J (11010), A (00011), N (00110), U (11100), S (10100) => JANUS",
+          "ITA2:\nA (00011) B (11001) C (01110) D (01001) E (00001)\nF (01100) G (11011) H (10100) I (00110) J (11010)\nK (11111) L (01000) M (00100) N (00110) O (11100)\nP (01101) Q (11101) R (01010) S (10100) T (10000)\nU (00111) V (11110) W (10011) X (11101) Y (10101)\nZ (10001) Space (00100)",
       },
     ],
   },
@@ -539,8 +534,6 @@ export const PAMPHLET_DOCS: Record<
         heading: "2-Rail Structure",
         content:
           "Write letters in alternating zig-zag across 2 rails, read off rail 1 then rail 2. Combined with Caesar autokey primer K.",
-        visual:
-          "Rail 1: D . N . B .\nRail 2: . A . U . E\nInterleave: D A N U B E",
       },
     ],
   },
@@ -552,8 +545,6 @@ export const PAMPHLET_DOCS: Record<
         heading: "Matrix Multiplication mod 26",
         content:
           "Plaintext vector P = C * K^-1 mod 26.\nInverse Matrix K^-1 = [[15, 17], [20, 9]].",
-        visual:
-          "[J, W] = [9, 22]\n[9, 22] * [[15, 17], [20, 9]] = [135+440, 153+198] = [575, 351] mod 26 = [15, 13] = [P, O] -> PO\n[A, M] = [0, 12] -> WE\n[B, U] = [1, 20] -> RS\nPlaintext: POWERS",
       },
     ],
   },
@@ -566,7 +557,7 @@ export const PAMPHLET_DOCS: Record<
         content:
           "Lowercase = A, Uppercase = B. Every 5 characters map to one letter.",
         visual:
-          "A = AAAAA  B = AAAAB  C = AAABA  D = AAABB  E = AABAA\nF = AABAB  G = AABBA  H = AABBB  I/J = ABAAA  K = ABAAB\nL = ABABA  M = ABABB  N = ABBAA  O = ABBAB  P = ABBBA\nQ = ABBBB  R = BAAAA  S = BAAAB  T = BAABA  U/V = BAABB\nW = BABAA  X = BABAB  Y = BABBA  Z = BABBB\nSequence: ABBAB (O), ABABB (M), AABAA (E), AABBA (G), AAAAA (A) => OMEGA",
+          "A = AAAAA  B = AAAAB  C = AAABA  D = AAABB  E = AABAA\nF = AABAB  G = AABBA  H = AABBB  I/J = ABAAA  K = ABAAB\nL = ABABA  M = ABABB  N = ABBAA  O = ABBAB  P = ABBBA\nQ = ABBBB  R = BAAAA  S = BAAAB  T = BAABA  U/V = BAABB\nW = BABAA  X = BABAB  Y = BABBA  Z = BABBB",
       },
     ],
   },
@@ -577,7 +568,7 @@ export const PAMPHLET_DOCS: Record<
       {
         heading: "Feistel Network Decryption",
         content:
-          "Given [L2, R2] = [1101, 0110], K2 = 1010, K1 = 0101, F(R, K) = R XOR K.\nRound 1 Reverse: L1 = R2 = 0110; R1 = L2 XOR F(L1, K2) = 1101 XOR (0110 XOR 1010) = 1101 XOR 1100 = 0001.\nRound 0 Reverse: L0 = R1 = 0001; R0 = L1 XOR F(L0, K1) = 0110 XOR (0001 XOR 0101) = 0110 XOR 0100 = 0010.\nResult: 01101000",
+          "F(R,K)=R XOR K.\nDecrypt: L_i-1 = R_i XOR F(L_i, K_i), R_i-1 = L_i.",
       },
     ],
   },
@@ -589,8 +580,6 @@ export const PAMPHLET_DOCS: Record<
         heading: "Parameters & Trapdoor Exponentiation",
         content:
           "Modulus n = 33, p = 3, q = 11, phi(n) = 20. Public key e = 7. Private exponent d = 3 (since 7*3 = 21 = 1 mod 20).\nDecryption: M = C^d mod n = C^3 mod 33.",
-        visual:
-          "C=01: 1^3 mod 33 = 1 -> A\nC=29: 29 = -4 mod 33. (-4)^3 = -64 = 2 mod 33 -> B\nC=27: 27 = -6 mod 33. (-6)^3 = -216 = 15 mod 33 -> O\nC=06: 6^3 = 216 = 18 mod 33 -> R\nC=26: 26 = -7 mod 33. (-7)^3 = -343 = 20 mod 33 -> T\nResult: ABORT",
       },
     ],
   },
@@ -601,9 +590,7 @@ export const PAMPHLET_DOCS: Record<
       {
         heading: "Execution Protocol",
         content:
-          "1. Key Ring Sequence: [7, 3, 9, 5] repeated.\n2. Gronsfeld Shift: Subtract key digits mod 26 from Ciphertext [A V U M N X R A C Z U S].\n3. Atbash Mirror: Replace each resulting letter with its alphabet opposite (A<->Z, B<->Y, etc.).",
-        visual:
-          "Cipher: A  V  U  M    N  X  R  A    C  Z  U  S\nSub:    7  3  9  5    7  3  9  5    7  3  9  5\nAtbash: T  S  L  H    G  U  I  V    V  W  L  N\nMirror: G  H  O  S    T  F  R  E    E  D  O  M\nResult: GHOST FREEDOM",
+          "1. Key Ring Sequence: [x, x, x, x] repeated.\n2. Gronsfeld Shift: Subtract key digits mod 26 from Ciphertext [A V U M N X R A C Z U S].\n3. Atbash Mirror: Replace each resulting letter with its alphabet opposite (A<->Z, B<->Y, etc.).",
       },
     ],
   },

@@ -27,6 +27,12 @@ async function getDb(): Promise<any> {
 
 function initSchema(db: any) {
   db.exec(`
+    PRAGMA journal_mode = WAL;
+    PRAGMA synchronous = NORMAL;
+    PRAGMA busy_timeout = 10000;
+    PRAGMA cache_size = -64000;
+    PRAGMA temp_store = MEMORY;
+
     CREATE TABLE IF NOT EXISTS teams (
       id TEXT PRIMARY KEY,
       team_name TEXT UNIQUE NOT NULL,
@@ -432,6 +438,18 @@ export const sqliteDb: DatabaseAdapter = {
       SET current_level = 1, branch = 'UNALIGNED', sub_branch = 'NONE', burn_level = 0, key_fragments = '[]', started_at = ?, finished_at = NULL, ending = NULL, wrong_attempts_current = 0
       WHERE team_id = ?
     `).run(now, teamId);
+  },
+
+  async resetAllTournamentData(): Promise<void> {
+    const d = await getDb();
+    d.exec(`
+      DELETE FROM submissions;
+      DELETE FROM choices;
+      DELETE FROM dilemma_sessions;
+      DELETE FROM rate_limits;
+      DELETE FROM progress;
+      DELETE FROM teams;
+    `);
   },
 
   async getLeaderboard(): Promise<LeaderboardEntry[]> {

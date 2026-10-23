@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  LogOut
+  LogOut,
+  Trash2
 } from 'lucide-react';
 import { LEVELS } from '@/lib/ciphers';
 
@@ -68,6 +69,9 @@ export default function AdminPage() {
   const [searchFilter, setSearchFilter] = useState('');
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [showAnswerKeys, setShowAnswerKeys] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetConfirmWord, setResetConfirmWord] = useState('');
+  const [resettingAll, setResettingAll] = useState(false);
 
   // Check if an admin session cookie is already active
   useEffect(() => {
@@ -185,6 +189,36 @@ export default function AdminPage() {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleResetTournament = async () => {
+    if (resetConfirmWord.trim().toUpperCase() !== 'RESET') return;
+    setResettingAll(true);
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reset_all',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionNotice(data.message);
+        setShowResetModal(false);
+        setResetConfirmWord('');
+        refreshOverview();
+      } else if (res.status === 401) {
+        setAuthenticated(false);
+      } else {
+        alert(data.error || 'Failed to reset tournament.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error triggering tournament reset.');
+    } finally {
+      setResettingAll(false);
     }
   };
 
@@ -367,6 +401,18 @@ export default function AdminPage() {
           >
             {isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
             <span>{isPaused ? 'Resume Global Event' : 'Emergency Freeze'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setResetConfirmWord('');
+              setShowResetModal(true);
+            }}
+            className="px-3 py-1.5 rounded bg-red-950/80 border border-red-700/80 hover:bg-red-900 text-xs text-red-300 hover:text-red-100 font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+            title="Purge all teams and reset leaderboard for a brand new game"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+            <span>Reset Tournament</span>
           </button>
 
           <button
@@ -648,6 +694,83 @@ export default function AdminPage() {
           )}
         </div>
       </main>
+
+      {/* Tournament Reset Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-lg bg-bunker-950 border-2 border-red-600 rounded-lg shadow-[0_0_50px_rgba(239,68,68,0.4)] p-6 space-y-5 text-stone-100">
+            <div className="flex items-center gap-3 border-b border-red-800/60 pb-3">
+              <div className="p-2 rounded bg-red-950 border border-red-600 text-red-400">
+                <ShieldAlert className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase text-red-400 tracking-wider">
+                  CONFIRM TOURNAMENT FACTORY RESET
+                </h3>
+                <p className="text-xs text-stone-400">Purge All Teams & Start Clean Campaign</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs text-stone-300 leading-relaxed bg-bunker-900/60 p-3.5 rounded border border-bunker-800">
+              <p className="text-red-300 font-bold">
+                ⚠️ WARNING: THIS WILL PERMANENTLY ERASE ALL GAME DATA!
+              </p>
+              <ul className="list-disc pl-5 space-y-1 text-stone-400">
+                <li>All registered teams will be permanently deleted.</li>
+                <li>All cipher submissions, choices, and timers will be purged.</li>
+                <li>The live leaderboard will be wiped completely clean (0 teams).</li>
+                <li>New teams will be able to register immediately from Round 1.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs uppercase font-bold text-stone-400">
+                Type <span className="text-red-400 font-mono tracking-widest font-black">RESET</span> to confirm:
+              </label>
+              <input
+                type="text"
+                value={resetConfirmWord}
+                onChange={(e) => setResetConfirmWord(e.target.value)}
+                placeholder="RESET"
+                className="w-full bg-bunker-900 border border-red-600/60 rounded px-3 py-2 text-stone-100 text-sm font-mono tracking-widest uppercase focus:outline-none focus:border-red-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={resettingAll}
+                onClick={() => {
+                  setShowResetModal(false);
+                  setResetConfirmWord('');
+                }}
+                className="px-4 py-2 rounded bg-bunker-900 border border-bunker-700 hover:border-stone-500 text-xs text-stone-300 uppercase tracking-wider transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={resetConfirmWord.trim().toUpperCase() !== 'RESET' || resettingAll}
+                onClick={handleResetTournament}
+                className="px-4 py-2 rounded bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {resettingAll ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Purging Tournament...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Confirm & Reset All</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -470,13 +470,23 @@ export const supabaseDb: DatabaseAdapter = {
     ]);
   },
 
+  async resetAllTournamentData(): Promise<void> {
+    const supabase = getSupabaseClient();
+    await supabase.from('submissions').delete().neq('id', -1);
+    await supabase.from('choices').delete().neq('id', -1);
+    await supabase.from('dilemma_sessions').delete().neq('level', -1);
+    await supabase.from('rate_limits').delete().neq('key', '__placeholder__');
+    await supabase.from('progress').delete().neq('current_level', -1);
+    await supabase.from('teams').delete().neq('created_at', -1);
+  },
+
   async getLeaderboard(): Promise<LeaderboardEntry[]> {
     const supabase = getSupabaseClient();
     const now = Date.now();
 
     const [teamsRes, subsRes] = await Promise.all([
       supabase.from('teams').select('id, team_name, members, progress(*)'),
-      supabase.from('submissions').select('team_id, created_at').order('created_at', { ascending: false }),
+      supabase.from('submissions').select('team_id, created_at').order('created_at', { ascending: false }).limit(500),
     ]);
 
     if (teamsRes.error || !teamsRes.data) {

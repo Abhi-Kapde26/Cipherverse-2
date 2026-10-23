@@ -50,7 +50,7 @@ export default function PamphletModal({ isOpen, onClose, initialKey = 'caesar' }
         {/* Content Area */}
         <div className="flex flex-1 flex-col md:flex-row overflow-hidden">
           {/* Sidebar / Index */}
-          <div className="w-full md:w-64 border-r border-bunker-700 bg-bunker-950/80 flex flex-col p-3 overflow-y-auto">
+          <div className="w-full md:w-64 max-h-44 md:max-h-none border-b md:border-b-0 md:border-r border-bunker-700 bg-bunker-950/80 flex flex-col p-3 overflow-y-auto flex-shrink-0">
             <div className="relative mb-3">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-500" />
               <input

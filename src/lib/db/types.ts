@@ -111,6 +111,7 @@ export interface DatabaseAdapter {
   recordChoice(teamId: string, level: number, option: string, autoPenalized: boolean): Promise<void>;
   getChoices(teamId: string): Promise<ChoiceRecord[]>;
   resetTeam(teamId: string): Promise<void>;
+  resetAllTournamentData(): Promise<void>;
   getLeaderboard(): Promise<LeaderboardEntry[]>;
   getRounds?(): Promise<RoundRecord[]>;
   getRound?(levelNumber: number, branch?: string): Promise<RoundRecord | null>;
