@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface CachedLeaderboardData {
   leaderboard: any;
@@ -13,11 +14,25 @@ let cachedData: CachedLeaderboardData | null = null;
 let lastFetchTime = 0;
 const CACHE_TTL_MS = 3000; // 3 seconds in-memory TTL prevents Supabase / SQLite overload under 100 teams
 
-export async function GET() {
-  const now = Date.now();
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+};
 
-  // Return cached result if valid
-  if (cachedData && now - lastFetchTime < CACHE_TTL_MS) {
+export async function GET(req: Request) {
+  const now = Date.now();
+  let isSync = false;
+
+  try {
+    const { searchParams } = new URL(req.url);
+    isSync = searchParams.get('sync') === 'true' || searchParams.get('force') === 'true';
+  } catch {
+    // URL parse fallback
+  }
+
+  // Return cached result if valid and not an explicit sync/force refresh
+  if (!isSync && cachedData && now - lastFetchTime < CACHE_TTL_MS) {
     return NextResponse.json(
       {
         ...cachedData,
@@ -26,7 +41,7 @@ export async function GET() {
       {
         headers: {
           'X-Cache': 'HIT',
-          'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=5',
+          ...NO_CACHE_HEADERS,
         },
       }
     );
@@ -45,8 +60,8 @@ export async function GET() {
 
     return NextResponse.json(cachedData, {
       headers: {
-        'X-Cache': 'MISS',
-        'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=5',
+        'X-Cache': isSync ? 'BYPASS' : 'MISS',
+        ...NO_CACHE_HEADERS,
       },
     });
   } catch (err: unknown) {
@@ -63,11 +78,15 @@ export async function GET() {
         {
           headers: {
             'X-Cache': 'STALE',
+            ...NO_CACHE_HEADERS,
           },
         }
       );
     }
 
-    return NextResponse.json({ error: 'Failed to retrieve leaderboard telemetry.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to retrieve leaderboard telemetry.' },
+      { status: 500, headers: NO_CACHE_HEADERS }
+    );
   }
 }

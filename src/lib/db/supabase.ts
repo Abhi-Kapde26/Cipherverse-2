@@ -486,7 +486,7 @@ export const supabaseDb: DatabaseAdapter = {
 
     const [teamsRes, subsRes] = await Promise.all([
       supabase.from('teams').select('id, team_name, members, progress(*)'),
-      supabase.from('submissions').select('team_id, created_at').order('created_at', { ascending: false }).limit(500),
+      supabase.from('submissions').select('team_id, created_at').order('created_at', { ascending: false }).limit(2500),
     ]);
 
     if (teamsRes.error || !teamsRes.data) {

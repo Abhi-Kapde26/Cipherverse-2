@@ -121,6 +121,10 @@ function initSchema(db: any) {
       created_at INTEGER NOT NULL,
       UNIQUE(round_number, branch)
     );
+
+    CREATE INDEX IF NOT EXISTS idx_submissions_team_created ON submissions(team_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_progress_team_id ON progress(team_id);
+    CREATE INDEX IF NOT EXISTS idx_teams_name ON teams(team_name);
   `);
 
   const checkState = db.prepare("SELECT value FROM event_state WHERE key = 'is_paused'").get();
@@ -459,6 +463,7 @@ export const sqliteDb: DatabaseAdapter = {
         t.id as team_id,
         t.team_name,
         t.members,
+        t.created_at as team_created_at,
         p.current_level,
         p.branch,
         p.sub_branch,
@@ -469,17 +474,18 @@ export const sqliteDb: DatabaseAdapter = {
         p.ending,
         (SELECT MAX(created_at) FROM submissions WHERE team_id = t.id) as last_active_at
       FROM teams t
-      JOIN progress p ON t.id = p.team_id
+      LEFT JOIN progress p ON t.id = p.team_id
     `).all() as Array<{
       team_id: string;
       team_name: string;
       members: string;
-      current_level: number;
-      branch: string;
-      sub_branch: string;
-      burn_level: number;
-      key_fragments: string;
-      started_at: number;
+      team_created_at: number;
+      current_level: number | null;
+      branch: string | null;
+      sub_branch: string | null;
+      burn_level: number | null;
+      key_fragments: string | null;
+      started_at: number | null;
       finished_at: number | null;
       ending: string | null;
       last_active_at: number | null;
@@ -487,30 +493,45 @@ export const sqliteDb: DatabaseAdapter = {
 
     const now = Date.now();
 
-    const formatted: LeaderboardEntry[] = rows.map((r) => {
-      const isFinished = r.finished_at !== null;
-      const clearedLevels = isFinished ? 15 : Math.max(0, r.current_level - 1);
-      const rawElapsed = isFinished ? r.finished_at! - r.started_at : (r.last_active_at || now) - r.started_at;
+    const parseJson = <T>(val: string | null | undefined, fallback: T): T => {
+      if (!val) return fallback;
+      try {
+        const parsed = JSON.parse(val);
+        return Array.isArray(fallback) ? (Array.isArray(parsed) ? parsed as unknown as T : fallback) : parsed;
+      } catch {
+        return fallback;
+      }
+    };
 
-      const penaltySeconds = r.burn_level >= 3 ? (r.burn_level - 2) * 120 : 0;
+    const formatted: LeaderboardEntry[] = rows.map((r) => {
+      const isFinished = r.finished_at !== null && r.finished_at !== undefined;
+      const currentLevel = r.current_level ?? 1;
+      const clearedLevels = isFinished ? 15 : Math.max(0, currentLevel - 1);
+      const startedAt = r.started_at ?? r.team_created_at ?? now;
+      const rawElapsed = isFinished
+        ? (r.finished_at! - startedAt)
+        : (r.last_active_at ? r.last_active_at - startedAt : (startedAt > 0 ? now - startedAt : 0));
+
+      const burnLevel = r.burn_level ?? 0;
+      const penaltySeconds = burnLevel >= 3 ? (burnLevel - 2) * 120 : 0;
       const adjustedElapsed = rawElapsed + penaltySeconds * 1000;
 
       return {
         team_id: r.team_id,
         team_name: r.team_name,
-        members: JSON.parse(r.members || '[]'),
+        members: parseJson<string[]>(r.members, []),
         cleared_levels: clearedLevels,
-        current_level: r.current_level,
-        branch: r.branch,
-        sub_branch: r.sub_branch,
-        burn_level: r.burn_level,
-        key_fragments: JSON.parse(r.key_fragments || '[]'),
+        current_level: currentLevel,
+        branch: r.branch || 'UNALIGNED',
+        sub_branch: r.sub_branch || 'NONE',
+        burn_level: burnLevel,
+        key_fragments: parseJson<number[]>(r.key_fragments, []),
         is_finished: isFinished,
-        ending: r.ending,
+        ending: r.ending || null,
         raw_elapsed_ms: Math.max(0, rawElapsed),
         adjusted_elapsed_ms: Math.max(0, adjustedElapsed),
         penalty_seconds: penaltySeconds,
-        last_active_at: r.last_active_at || r.started_at,
+        last_active_at: r.last_active_at || startedAt,
       };
     });
 

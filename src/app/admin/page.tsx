@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   ShieldAlert, 
@@ -72,6 +72,8 @@ export default function AdminPage() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetConfirmWord, setResetConfirmWord] = useState('');
   const [resettingAll, setResettingAll] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [countdown, setCountdown] = useState(15);
 
   // Check if an admin session cookie is already active
   useEffect(() => {
@@ -144,8 +146,11 @@ export default function AdminPage() {
     }
   };
 
-  const refreshOverview = async () => {
-    setLoading(true);
+  const refreshOverview = useCallback(async (isManual = true) => {
+    if (isManual) {
+      setSyncing(true);
+      setCountdown(15);
+    }
     try {
       const res = await fetch('/api/admin', {
         method: 'POST',
@@ -166,9 +171,39 @@ export default function AdminPage() {
     } catch (e) {
       console.error(e);
     } finally {
+      setSyncing(false);
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Auto-sync every 15 seconds when authenticated
+  useEffect(() => {
+    if (!authenticated) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          refreshOverview(false);
+          return 15;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && authenticated) {
+        refreshOverview(false);
+        setCountdown(15);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [authenticated, refreshOverview]);
 
   const handleTogglePause = async () => {
     try {
@@ -415,13 +450,25 @@ export default function AdminPage() {
             <span>Reset Tournament</span>
           </button>
 
-          <button
-            onClick={refreshOverview}
-            className="px-3 py-1.5 rounded bg-bunker-900 border border-bunker-700 hover:border-stone-500 text-xs text-stone-300 flex items-center gap-1.5"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Sync</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-stone-400 font-mono">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Auto-sync: <strong className="text-amber-400">{countdown}s</strong>
+            </span>
+
+            <button
+              onClick={() => refreshOverview(true)}
+              disabled={syncing}
+              className="px-3 py-1.5 rounded bg-bunker-900 border border-bunker-700 hover:border-amber-500 text-xs text-stone-300 hover:text-amber-400 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              title="Force sync teams roster now"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-amber-400' : 'text-amber-500'}`} />
+              <span>{syncing ? 'Syncing...' : 'Sync'}</span>
+            </button>
+          </div>
 
           <button
             onClick={handleLogout}
