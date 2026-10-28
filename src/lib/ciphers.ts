@@ -405,15 +405,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Bletchley Park Training Manual BP-43",
     sections: [
       {
-        heading: "Operating Principles",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "The Caesar shift advances or reverses each alphabetical character by a fixed numerical displacement 'k' along the 26-character Latin alphabet. In Operation Janus, null characters or spaces may be inserted to create 4-letter or 5-letter telegraph groups.",
+          "",
         visual:
-          "Plain:   A B C D E F G H I J K L M N O P Q R S T U V W X Y Z\nShift+3: D E F G H I J K L M N O P Q R S T U V W X Y Z A B C",
-      },
-      {
-        heading: "Decryption Formula",
-        content: "P_i = (C_i - k + 26) mod 26. When k = 3, 'Z' -> 'W', 'L' -> 'I', 'W' -> 'T'.",
+          "",
       },
     ],
   },
@@ -422,11 +418,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Arlington Hall Cryptanalysis Standard",
     sections: [
       {
-        heading: "Mathematical Secrecy & Re-use Vulnerability",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "A true One-Time Pad (Vernam cipher) is theoretically unbreakable if used once. If a sheet is reused, ciphertext subtraction between two intercepts eliminates the pad and reveals plaintext differences. Here: P_i = (C_i - Pad_i + 26) mod 26.",
+          "",
         visual:
-          "Letter Mapping (A=0 .. Z=25):\nA=00  B=01  C=02  D=03  E=04  F=05  G=06  H=07  I=08  J=09\nK=10  L=11  M=12  N=13  O=14  P=15  Q=16  R=17  S=18  T=19\nU=20  V=21  W=22  X=23  Y=24  Z=25",
+          "",
       },
     ],
   },
@@ -435,11 +431,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "SOE Field Manual No. 12",
     sections: [
       {
-        heading: "Geometric Reordering",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Plaintext characters are written horizontally into rows under a keyword. Columns are then extracted vertically according to the alphabetical order of the letters in the keyword.",
+          "",
         visual:
-          "Keyword: W A R P\nOrder:   4 1 3 2\nRow 1:   U N T H\nRow 2:   I N K A\nRow 3:   B L E J\nRow 4:   U L Y F\nRow 5:   I R S T\nRead col 1 (A): N N L L R\nRead col 2 (P): H A J F T\nRead col 3 (R): T K E Y S\nRead col 4 (W): U I B U I",
+          "",
       },
     ],
   },
@@ -448,11 +444,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Polyalphabetic Substitution Table",
     sections: [
       {
-        heading: "Tabula Recta Operations",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Vigenère encryption shifts each plaintext character by the alphabetical index of the repeated keyword letter: C_i = (P_i + K_i) mod 26. To decipher: P_i = (C_i - K_i + 26) mod 26.",
+          "",
         visual:
-          "Key:  R O C K E T R O C K E T R\nCipher:  R Z R S R X I S F Y Y U K",
+          "",
       },
     ],
   },
@@ -461,16 +457,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Hut 99 Polybius Field Matrix",
     sections: [
       {
-        heading: "5x5 Grid Generation (TRINITY)",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Remove duplicates from keyword. Combine I/J into one cell. Fill remaining cells with untouched alphabet.",
+          "",
         visual:
-          "T  R  I  N  Y\nA  B  C  D  E\nF  G  H  K  L\nM  O  P  Q  S\nU  V  W  X  Z",
-      },
-      {
-        heading: "Decryption Rules",
-        content:
-          "1. Same Row: Shift left cyclically.\n2. Same Column: Shift up cyclically.\n3. Rectangle: Swap columns while keeping original rows.",
+          "",
       },
     ],
   },
@@ -479,11 +470,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "WWI/WWII German Army Radio Cryptosystem",
     sections: [
       {
-        heading: "Grid Coordinates",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Uses coordinates A, D, F, G, V, X chosen specifically because Morse code transmissions of these six letters are acoustically distinct and difficult to garble over radio static.",
+          "",
         visual:
-          "      A   D   F   G   V   X\nA |                        \nD |                        \nF |                        \nG |                        \nV |                        \nX |                        ",
+          "",
       },
     ],
   },
@@ -492,11 +483,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Modular Linear Transformation",
     sections: [
       {
-        heading: "Decryption Congruence",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Ciphertext character y is mapped to plaintext x using: x = a^-1 * (y - b) mod 26.\nFor Unit 404 Intercept: D(y) = 21 * (y - 8) mod 26.",
+          "",
         visual:
-          "Letter 'U' (20): 21 * (20 - 8) = 21 * 12 = 252 = 9 * 26 + 18 -> S (18)\nLetter 'Z' (25): 21 * (25 - 8) = 21 * 17 = 357 = 13 * 26 + 19 -> T (19)\nLetter 'I' (8):  21 * (8 - 8) = 0 -> A (0)",
+          "",
       },
     ],
   },
@@ -504,12 +495,12 @@ export const PAMPHLET_DOCS: Record<
     title: "SECTION 08: STRADDLING CHECKERBOARD",
     subtitle: "Soviet NKVD/KGB Illegals Grid",
     sections: [
-      {
-        heading: "Keyword SNOWY Matrix",
+     {
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "High-frequency letters occupy single digits. Escapes (digits 8 and 9) branch into 2-digit pairs.",
+          "",
         visual:
-          "      0  1  2  3  4  5  6  7  8  9\n      S  N     O        W  Y  -  -\n8 |   A  B  C  D  E  F  G  H  I  J\n9 |   K  L  M  P  Q  R  T  U  V  Z",
+          "",
       },
     ],
   },
@@ -518,11 +509,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Teletype Tape Cryptanalysis",
     sections: [
       {
-        heading: "XOR Truth Table & ITA2 Code",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Compare bits: 0^0=0, 1^1=0, 0^1=1, 1^0=1. Then look up letter in ITA2 code table.",
+          "",
         visual:
-          "ITA2:\nA (00011) B (11001) C (01110) D (01001) E (00001)\nF (01100) G (11011) H (10100) I (00110) J (11010)\nK (11111) L (01000) M (00100) N (00110) O (11100)\nP (01101) Q (11101) R (01010) S (10100) T (10000)\nU (00111) V (11110) W (10011) X (11101) Y (10101)\nZ (10001) Space (00100)",
+          "",
       },
     ],
   },
@@ -531,9 +522,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Zig-Zag Spatial Transposition",
     sections: [
       {
-        heading: "2-Rail Structure",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Write letters in alternating zig-zag across 2 rails, read off rail 1 then rail 2. Combined with Caesar autokey primer K.",
+          "",
+        visual:
+          "",
       },
     ],
   },
@@ -542,9 +535,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Lester Hill Linear Algebra System",
     sections: [
       {
-        heading: "Matrix Multiplication mod 26",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Plaintext vector P = C * K^-1 mod 26.\nInverse Matrix K^-1 = [[15, 17], [20, 9]].",
+          "",
+        visual:
+          "",
       },
     ],
   },
@@ -553,11 +548,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Francis Bacon 5-Bit Biliteral Cipher",
     sections: [
       {
-        heading: "Font Weight Encoding",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Lowercase = A, Uppercase = B. Every 5 characters map to one letter.",
+          "",
         visual:
-          "A = AAAAA  B = AAAAB  C = AAABA  D = AAABB  E = AABAA\nF = AABAB  G = AABBA  H = AABBB  I/J = ABAAA  K = ABAAB\nL = ABABA  M = ABABB  N = ABBAA  O = ABBAB  P = ABBBA\nQ = ABBBB  R = BAAAA  S = BAAAB  T = BAABA  U/V = BAABB\nW = BABAA  X = BABAB  Y = BABBA  Z = BABBB",
+          "",
       },
     ],
   },
@@ -566,9 +561,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Horst Feistel Modern Block Architecture",
     sections: [
       {
-        heading: "Feistel Network Decryption",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "F(R,K)=R XOR K.\nDecrypt: L_i-1 = R_i XOR F(L_i, K_i), R_i-1 = L_i.",
+          "",
+        visual:
+          "",
       },
     ],
   },
@@ -577,9 +574,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Rivest-Shamir-Adleman Asymmetric Cryptosystem",
     sections: [
       {
-        heading: "Parameters & Trapdoor Exponentiation",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "Modulus n = 33, p = 3, q = 11, phi(n) = 20. Public key e = 7. Private exponent d = 3 (since 7*3 = 21 = 1 mod 20).\nDecryption: M = C^d mod n = C^3 mod 33.",
+          "",
+        visual:
+          "",
       },
     ],
   },
@@ -588,9 +587,11 @@ export const PAMPHLET_DOCS: Record<
     subtitle: "Gronsfeld De-indexing & Atbash Inversion",
     sections: [
       {
-        heading: "Execution Protocol",
+        heading: "USE PHYSICAL PAMPHLET",
         content:
-          "1. Key Ring Sequence: [x, x, x, x] repeated.\n2. Gronsfeld Shift: Subtract key digits mod 26 from Ciphertext [A V U M N X R A C Z U S].\n3. Atbash Mirror: Replace each resulting letter with its alphabet opposite (A<->Z, B<->Y, etc.).",
+          "",
+        visual:
+          "",
       },
     ],
   },
