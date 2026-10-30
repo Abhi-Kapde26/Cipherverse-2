@@ -32,6 +32,7 @@ function initSchema(db: any) {
     PRAGMA busy_timeout = 10000;
     PRAGMA cache_size = -64000;
     PRAGMA temp_store = MEMORY;
+    PRAGMA mmap_size = 268435456;
 
     CREATE TABLE IF NOT EXISTS teams (
       id TEXT PRIMARY KEY,
@@ -123,6 +124,10 @@ function initSchema(db: any) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_submissions_team_created ON submissions(team_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_submissions_team_created_desc ON submissions(team_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_submissions_created ON submissions(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_choices_team ON choices(team_id, level);
+    CREATE INDEX IF NOT EXISTS idx_dilemma_sessions_team ON dilemma_sessions(team_id, level);
     CREATE INDEX IF NOT EXISTS idx_progress_team_id ON progress(team_id);
     CREATE INDEX IF NOT EXISTS idx_teams_name ON teams(team_name);
   `);
@@ -282,24 +287,50 @@ export const sqliteDb: DatabaseAdapter = {
 
   async updateProgress(teamId: string, updates: Partial<ProgressRecord>): Promise<void> {
     const d = await getDb();
-    const current = await this.getProgress(teamId);
-    if (!current) return;
+    const fields: string[] = [];
+    const values: any[] = [];
 
-    const current_level = updates.current_level !== undefined ? updates.current_level : current.current_level;
-    const branch = updates.branch !== undefined ? updates.branch : current.branch;
-    const sub_branch = updates.sub_branch !== undefined ? updates.sub_branch : current.sub_branch;
-    const burn_level = updates.burn_level !== undefined ? updates.burn_level : current.burn_level;
-    const key_fragments = updates.key_fragments !== undefined ? JSON.stringify(updates.key_fragments) : JSON.stringify(current.key_fragments);
-    const finished_at = updates.finished_at !== undefined ? updates.finished_at : current.finished_at;
-    const ending = updates.ending !== undefined ? updates.ending : current.ending;
-    const wrong_attempts_current = updates.wrong_attempts_current !== undefined ? updates.wrong_attempts_current : current.wrong_attempts_current;
-    const started_at = updates.started_at !== undefined ? updates.started_at : current.started_at;
+    if (updates.current_level !== undefined) {
+      fields.push('current_level = ?');
+      values.push(updates.current_level);
+    }
+    if (updates.branch !== undefined) {
+      fields.push('branch = ?');
+      values.push(updates.branch);
+    }
+    if (updates.sub_branch !== undefined) {
+      fields.push('sub_branch = ?');
+      values.push(updates.sub_branch);
+    }
+    if (updates.burn_level !== undefined) {
+      fields.push('burn_level = ?');
+      values.push(updates.burn_level);
+    }
+    if (updates.key_fragments !== undefined) {
+      fields.push('key_fragments = ?');
+      values.push(JSON.stringify(updates.key_fragments));
+    }
+    if (updates.finished_at !== undefined) {
+      fields.push('finished_at = ?');
+      values.push(updates.finished_at);
+    }
+    if (updates.ending !== undefined) {
+      fields.push('ending = ?');
+      values.push(updates.ending);
+    }
+    if (updates.wrong_attempts_current !== undefined) {
+      fields.push('wrong_attempts_current = ?');
+      values.push(updates.wrong_attempts_current);
+    }
+    if (updates.started_at !== undefined) {
+      fields.push('started_at = ?');
+      values.push(updates.started_at);
+    }
 
-    d.prepare(`
-      UPDATE progress
-      SET current_level = ?, branch = ?, sub_branch = ?, burn_level = ?, key_fragments = ?, finished_at = ?, ending = ?, wrong_attempts_current = ?, started_at = ?
-      WHERE team_id = ?
-    `).run(current_level, branch, sub_branch, burn_level, key_fragments, finished_at, ending, wrong_attempts_current, started_at, teamId);
+    if (fields.length === 0) return;
+
+    values.push(teamId);
+    d.prepare(`UPDATE progress SET ${fields.join(', ')} WHERE team_id = ?`).run(...values);
   },
 
   async advanceTeamLevel(

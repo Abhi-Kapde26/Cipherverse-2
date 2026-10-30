@@ -7,6 +7,10 @@ let cachedPaused: boolean | null = null;
 let lastPausedCheck = 0;
 const PAUSED_CACHE_TTL = 5000; // 5 seconds in-memory cache
 
+// In-memory team cache: teams are immutable during rounds, eliminating redundant DB reads under load
+const teamCache = new Map<string, { team: any; timestamp: number }>();
+const TEAM_CACHE_TTL = 30000; // 30 seconds
+
 async function getAdapter(): Promise<DatabaseAdapter> {
   if (isSupabaseConfigured()) {
     return supabaseDb;
@@ -35,16 +39,30 @@ export const db: DatabaseAdapter = {
     return adapter.setEventPaused(paused);
   },
   async createTeam(id: string, teamName: string, members: string[], passwordHash: string) {
+    teamCache.delete(id);
     const adapter = await getAdapter();
-    return adapter.createTeam(id, teamName, members, passwordHash);
+    const team = await adapter.createTeam(id, teamName, members, passwordHash);
+    if (team) {
+      teamCache.set(id, { team, timestamp: Date.now() });
+    }
+    return team;
   },
   async getTeamByName(teamName: string) {
     const adapter = await getAdapter();
     return adapter.getTeamByName(teamName);
   },
   async getTeamById(id: string) {
+    const now = Date.now();
+    const cached = teamCache.get(id);
+    if (cached && now - cached.timestamp < TEAM_CACHE_TTL) {
+      return cached.team;
+    }
     const adapter = await getAdapter();
-    return adapter.getTeamById(id);
+    const team = await adapter.getTeamById(id);
+    if (team) {
+      teamCache.set(id, { team, timestamp: now });
+    }
+    return team;
   },
   async getAllTeams() {
     const adapter = await getAdapter();
@@ -101,11 +119,13 @@ export const db: DatabaseAdapter = {
     return adapter.getChoices(teamId);
   },
   async resetTeam(teamId: string) {
+    teamCache.delete(teamId);
     memoryRateLimiter.reset(`submit:${teamId}`);
     const adapter = await getAdapter();
     return adapter.resetTeam(teamId);
   },
   async resetAllTournamentData() {
+    teamCache.clear();
     memoryRateLimiter.resetAll();
     const adapter = await getAdapter();
     return adapter.resetAllTournamentData();

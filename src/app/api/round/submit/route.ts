@@ -102,7 +102,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Record submission attempt
-    await db.recordSubmission(team.id, levelNum, answer.slice(0, 100), isCorrect);
+    db.recordSubmission(team.id, levelNum, answer.slice(0, 100), isCorrect).catch((err) => {
+      console.error('Failed to log submission attempt:', err);
+    });
 
     if (!isCorrect) {
       const newWrongCount = progress.wrong_attempts_current + 1;

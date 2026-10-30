@@ -211,7 +211,17 @@ export default function RoundPage() {
           text: data.error || data.message || 'ACCESS DENIED: Decryption rejected.',
         });
 
-        fetchSession();
+        // Optimistically update session in-memory instead of hammering server with /api/auth/me
+        if (typeof data.wrongAttempts === 'number' || typeof data.burnLevel === 'number') {
+          setSession((prev) => prev ? {
+            ...prev,
+            progress: {
+              ...prev.progress,
+              wrong_attempts_current: data.wrongAttempts ?? prev.progress.wrong_attempts_current,
+              burn_level: data.burnLevel ?? prev.progress.burn_level,
+            }
+          } : null);
+        }
       } else {
         // Correct answer!
         soundEngine.playStampThud();
@@ -235,12 +245,34 @@ export default function RoundPage() {
         });
 
         if (data.isComplete) {
+          // Optimistically update session in-memory on success
+          setSession((prev) => prev ? {
+            ...prev,
+            progress: {
+              ...prev.progress,
+              current_level: data.nextLevel ?? prev.progress.current_level + 1,
+              wrong_attempts_current: 0,
+              key_fragments: data.keyFragments ?? prev.progress.key_fragments,
+              finished_at: Date.now(),
+            }
+          } : null);
           setTimeout(() => {
             router.push('/complete');
           }, 2500);
         } else {
           setTimeout(() => {
-            fetchSession();
+            setSession((prev) => prev ? {
+              ...prev,
+              progress: {
+                ...prev.progress,
+                current_level: data.nextLevel ?? prev.progress.current_level + 1,
+                wrong_attempts_current: 0,
+                key_fragments: data.keyFragments ?? prev.progress.key_fragments,
+              }
+            } : null);
+            if (data.nextLevel && data.nextLevel <= 15) {
+              router.push(`/round/${data.nextLevel}`);
+            }
           }, 1500);
         }
       }
